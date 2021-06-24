@@ -66,7 +66,7 @@ const upload = async (msg) => {
         .catch((err) => {
           console.log(err);
         });
-    }, i * 1000);
+    }, i * 2000);
   });
 };
 
