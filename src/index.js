@@ -57,7 +57,7 @@ const upload = async (msg) => {
         .downloader(episode.url, `${webtoon.title} - chapiter ${i}`)
         .then(async (webtoonFile) => {
           await bot
-            .sendDocument(msg.chat.id, webtoonFile, { caption: `chapiter ${i}` })
+            .sendDocument(process.env.CHANNEL_ID, webtoonFile, { caption: `chapiter ${i}` })
             .then(() => {
               fs.rmSync(webtoonFile);
             });
