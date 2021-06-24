@@ -45,7 +45,7 @@ const upload = async (msg) => {
   const liteFile = await fetch.downloadLiteFile(bot, msg);
   const data = await getDataAndClean(liteFile);
   const webtoon = await structureData(data);
-  bot.sendPhoto(msg.chat.id, webtoon.img, {
+  bot.sendPhoto(process.env.CHANNEL_ID, webtoon.img, {
     parse_mode: 'HTML',
     caption: `💠 <a>Title :</a> ${webtoon.title}
 💠 <a>Synopsis :</a> ${webtoon.synopsis}
@@ -61,7 +61,7 @@ const upload = async (msg) => {
             .then(() => {
               fs.rmSync(webtoonFile);
             });
-          if (i === webtoon.episodes.length) bot.sendMessage(msg.chat.id, '🔚');
+          if (i === webtoon.episodes.length - 1) bot.sendMessage(process.env.CHANNEL_ID, '🔚');
         })
         .catch((err) => {
           console.log(err);
