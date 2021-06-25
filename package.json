@@ -4,8 +4,8 @@
   "description": "Download a webtoon from a pipi file",
   "private": true,
   "scripts": {
-    "start": "nodemon src/",
-    "dev": "NODE_ENV=development nodemon src/",
+    "start": "nodemon src/ --ignore temps",
+    "dev": "NODE_ENV=development nodemon src/ --ignore temps",
     "lint": "eslint --ext .js ."
   },
   "keywords": [

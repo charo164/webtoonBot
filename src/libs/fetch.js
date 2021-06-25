@@ -26,8 +26,7 @@ const downloader = (fileUrl = '', fileName = '') => {
       const dest = fs.createWriteStream(tempPath);
       https
         .get(url, (res) => {
-          if (res.statusCode !== 302) {
-            console.log(res.statusCode);
+          if (res.statusCode === 200) {
             const stream = res.pipe(dest);
             stream.on('error', (error) => {
               reject(error);
@@ -35,10 +34,7 @@ const downloader = (fileUrl = '', fileName = '') => {
             stream.on('finish', () => {
               resolve(tempPath);
             });
-            stream.on('pipe', () => {
-              console.log('piping');
-            });
-          } else {
+          } else if (res.statusCode === 302) {
             downloader(res.headers.location, fileName)
               .then((r) => {
                 resolve(r);
@@ -46,6 +42,16 @@ const downloader = (fileUrl = '', fileName = '') => {
               .catch((e) => {
                 reject(e);
               });
+          } else {
+            setTimeout(() => {
+              downloader(res.headers.location, fileName)
+                .then((r) => {
+                  resolve(r);
+                })
+                .catch((e) => {
+                  reject(e);
+                });
+            }, 2000);
           }
         })
         .on('error', (error) => {
@@ -67,7 +73,6 @@ const downloadLiteFile = async (bot, msg) => {
   const fileName = msg.document.file_name;
   const filePath = (await bot.getFile(msg.document.file_id)).file_path;
   const fileUrl = process.env.FILE_URL + filePath;
-  console.log(fileName, filePath, fileUrl);
   const res = await downloader(fileUrl, fileName);
   return res;
 };

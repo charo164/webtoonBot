@@ -1,7 +1,13 @@
 require('dotenv').config();
 const TelegramBot = require('node-telegram-bot-api');
 const fs = require('fs');
-const { isAcceptedExtension, getDataAndClean, structureData } = require('./libs/file_and_data');
+const {
+  isAcceptedExtension,
+  getDataAndClean,
+  structureData,
+  getQueue,
+  isUploading,
+} = require('./libs/file_and_data');
 const fetch = require('./libs/fetch');
 
 let bot = new TelegramBot();
@@ -35,22 +41,16 @@ if (process.env.NODE_ENV === 'development') {
  * @param {TelegramBot.Message} msg
  * @returns void
  */
-const upload = async (msg) => {
-  const fileName = msg.document.file_name;
-
-  if (!isAcceptedExtension(fileName)) {
-    bot.sendMessage(msg.chat.id, 'File type no accepted❗️');
-    return 0;
-  }
-  const liteFile = await fetch.downloadLiteFile(bot, msg);
-  const data = await getDataAndClean(liteFile);
-  const webtoon = await structureData(data);
+const upload = async (webtoon) => {
   bot.sendPhoto(process.env.CHANNEL_ID, webtoon.img, {
     parse_mode: 'HTML',
     caption: `💠 <a>Title :</a> ${webtoon.title}
 💠 <a>Synopsis :</a> ${webtoon.synopsis}
 `,
   });
+  const rapport = await bot.sendMessage(webtoon.chat_id, 'Starting...');
+  const total = webtoon.episodes.length;
+  let current = 1;
   webtoon.episodes.forEach(async (episode, i) => {
     setTimeout(() => {
       fetch
@@ -60,18 +60,62 @@ const upload = async (msg) => {
             .sendDocument(process.env.CHANNEL_ID, webtoonFile, { caption: `chapiter ${i}` })
             .then(() => {
               fs.rmSync(webtoonFile);
+              bot.editMessageText(`downloading... ${(current * 100) / total}%`, {
+                chat_id: webtoon.chat_id,
+                message_id: rapport.message_id,
+              });
+              current++;
             });
-          if (i === webtoon.episodes.length - 1) bot.sendMessage(process.env.CHANNEL_ID, '🔚');
+          if (i === webtoon.episodes.length - 1) {
+            bot.sendMessage(process.env.CHANNEL_ID, '🔚');
+            const queue = getQueue();
+            queue.shift();
+            fs.writeFileSync('temps/queue.json', JSON.stringify(queue));
+            fs.writeFileSync('temps/isUploading.json', JSON.stringify([false]));
+          }
         })
         .catch((err) => {
           console.log(err);
+          bot.sendMessage(webtoon.chat_id, 'Error ❗️');
+          const queue = getQueue();
+          queue.shift();
+          fs.writeFileSync('temps/queue.json', JSON.stringify(queue));
+          fs.writeFileSync('temps/isUploading.json', JSON.stringify([false]));
         });
-    }, i * 4000);
+    }, i * 1);
   });
 };
 
+const addToQueue = async (msg) => {
+  const fileName = msg.document.file_name;
+
+  if (!isAcceptedExtension(fileName)) {
+    bot.sendMessage(msg.chat.id, 'File type no accepted❗️');
+    return 0;
+  }
+  const liteFile = await fetch.downloadLiteFile(bot, msg);
+  const data = await getDataAndClean(liteFile);
+  const webtoon = await structureData(data);
+
+  webtoon.chat_id = msg.chat.id;
+
+  const queue = await getQueue();
+
+  queue.push(webtoon);
+
+  fs.writeFileSync('temps/queue.json', JSON.stringify(queue));
+};
+
 bot.on('document', async (msg) => {
-  upload(msg).catch(() => {
+  addToQueue(msg).catch((err) => {
+    console.log(err);
     bot.sendMessage(msg.chat.id, 'Error ❗️');
   });
 });
+
+setInterval(() => {
+  if (!isUploading() && getQueue().length) {
+    fs.writeFileSync('temps/isUploading.json', JSON.stringify([true]));
+    upload(getQueue()[0]).catch((err) => console.log(err));
+  }
+}, 2000);

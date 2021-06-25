@@ -58,6 +58,32 @@ const structureData = async (data) => {
   return webtoon;
 };
 
+const getQueue = () => {
+  if (fs.existsSync('temps/queue.json')) {
+    return JSON.parse(fs.readFileSync('temps/queue.json', 'utf8'));
+  } else if (fs.existsSync('temps')) {
+    fs.writeFileSync('temps/queue.json', JSON.stringify([]));
+    return [];
+  } else {
+    fs.mkdirSync('temps');
+    fs.writeFileSync('temps/queue.json', JSON.stringify([]));
+    return [];
+  }
+};
+
+const isUploading = () => {
+  if (fs.existsSync('temps/isUploading.json')) {
+    return JSON.parse(fs.readFileSync('temps/isUploading.json', 'utf8'))[0];
+  } else if (fs.existsSync('temps')) {
+    fs.writeFileSync('temps/isUploading.json', JSON.stringify([false]));
+    return false;
+  } else {
+    fs.mkdirSync('temps');
+    fs.writeFileSync('temps/isUploading.json', JSON.stringify([false]));
+    return false;
+  }
+};
+
 /**
  * EXPORTS
  */
@@ -65,3 +91,5 @@ module.exports.getExtension = getExtension;
 module.exports.isAcceptedExtension = isAcceptedExtension;
 module.exports.structureData = structureData;
 module.exports.getDataAndClean = getDataAndClean;
+module.exports.getQueue = getQueue;
+module.exports.isUploading = isUploading;
