@@ -81,6 +81,7 @@ const upload = async (webtoon) => {
         })
         .catch((err) => {
           console.log(err);
+          current++;
           bot.sendMessage(webtoon.chat_id, 'Error ❗️');
           if (i === webtoon.episodes.length - 1) {
             const queue = getQueue();
