@@ -60,7 +60,7 @@ const upload = async (webtoon) => {
             .sendDocument(process.env.CHANNEL_ID, webtoonFile, { caption: `chapiter ${i}` })
             .then(() => {
               fs.rmSync(webtoonFile);
-              bot.editMessageText(`downloading... ${(current * 100) / total}%`, {
+              bot.editMessageText(`chapiter ${current}/${total} - ${(current * 100) / total}%`, {
                 chat_id: webtoon.chat_id,
                 message_id: rapport.message_id,
               });
@@ -77,10 +77,12 @@ const upload = async (webtoon) => {
         .catch((err) => {
           console.log(err);
           bot.sendMessage(webtoon.chat_id, 'Error ❗️');
-          const queue = getQueue();
-          queue.shift();
-          fs.writeFileSync('temps/queue.json', JSON.stringify(queue));
-          fs.writeFileSync('temps/isUploading.json', JSON.stringify([false]));
+          if (i === webtoon.episodes.length - 1) {
+            const queue = getQueue();
+            queue.shift();
+            fs.writeFileSync('temps/queue.json', JSON.stringify(queue));
+            fs.writeFileSync('temps/isUploading.json', JSON.stringify([false]));
+          }
         });
     }, i * 1);
   });

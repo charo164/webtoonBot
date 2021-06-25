@@ -1,1 +1,1 @@
-worker: nodemon src/index.js
+worker: nodemon src/ --ignore temps
