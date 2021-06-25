@@ -60,10 +60,15 @@ const upload = async (webtoon) => {
             .sendDocument(process.env.CHANNEL_ID, webtoonFile, { caption: `chapiter ${i}` })
             .then(() => {
               fs.rmSync(webtoonFile);
-              bot.editMessageText(`chapiter ${current}/${total} - ${(current * 100) / total}%`, {
-                chat_id: webtoon.chat_id,
-                message_id: rapport.message_id,
-              });
+              bot.editMessageText(
+                `${webtoon.title.slice(0, 10)}... - chapiter ${current}/${total} - ${Math.floor(
+                  (current * 100) / total
+                )}%`,
+                {
+                  chat_id: webtoon.chat_id,
+                  message_id: rapport.message_id,
+                }
+              );
               current++;
             });
           if (i === webtoon.episodes.length - 1) {
@@ -84,7 +89,7 @@ const upload = async (webtoon) => {
             fs.writeFileSync('temps/isUploading.json', JSON.stringify([false]));
           }
         });
-    }, i * 1);
+    }, i * 3000);
   });
 };
 
