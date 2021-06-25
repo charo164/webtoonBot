@@ -79,10 +79,12 @@ const upload = async (webtoon) => {
             fs.writeFileSync('temps/isUploading.json', JSON.stringify([false]));
           }
         })
-        .catch((err) => {
-          console.log(err);
+        .catch(() => {
           current++;
-          bot.sendMessage(webtoon.chat_id, 'Error ❗️');
+          bot.sendMessage(
+            webtoon.chat_id,
+            `Error ❗️ ${webtoon.title.slice(0, 10)}... - chapiter ${current}`
+          );
           if (i === webtoon.episodes.length - 1) {
             const queue = getQueue();
             queue.shift();
@@ -90,7 +92,7 @@ const upload = async (webtoon) => {
             fs.writeFileSync('temps/isUploading.json', JSON.stringify([false]));
           }
         });
-    }, i * 3000);
+    }, i * 4000);
   });
 };
 
