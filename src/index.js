@@ -24,6 +24,9 @@ if (process.env.NODE_ENV === 'development') {
   const app = express();
   app.use(express.json());
   bot.setWebHook(`${process.env.URL}:443/bot${process.env.TOKEN}`);
+  app.get('/', (req, res) => {
+    res.status(200).send('OK');
+  });
   app.post(`/bot${process.env.TOKEN}`, (req, res) => {
     bot.processUpdate(req.body);
     res.sendStatus(200);
